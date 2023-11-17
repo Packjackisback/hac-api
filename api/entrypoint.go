@@ -189,17 +189,7 @@ func getAssignments(c *gin.Context) {
 		classArr := strings.Split(strings.Join(strings.Fields(e.ChildText("div.sg-header")), " "), " ")
 		class := strings.Join(classArr[3:len(classArr)-3], " ")
 		classes = append(classes, class)
-		averageElement := e.Child("span.sg-header-heading")
-		if averageElement != nil {
-		    average := averageElement.Text()
-		    if len(average) >= 18 {
-		        average = average[18:]
-		    }
-		    averages = append(averages, average)
-		} else {
-		    // Handle the case where the span element is not found
-		    averages = append(averages, "")
-		}
+		average := e.ChildText("span.sg-header-heading")[18:]
 		averages = append(averages, average)
 	})
 
