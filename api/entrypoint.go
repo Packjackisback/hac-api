@@ -316,31 +316,40 @@ func getAverages(c *gin.Context) {
 	}
 
 	classes := make([]string, 0)
-	averages := make([]string, 0)
+	averages := make([]float64, 0)
 
-	collector.OnHTML("div.AssignmentClass", func(e *colly.HTMLElement) {
-		classArr := strings.Split(strings.Join(strings.Fields(e.ChildText("div.sg-header")), " "), " ")
-		class := strings.Join(classArr[3:len(classArr)-3], " ")
-		classes = append(classes, class)
-		average := e.ChildText("span.sg-header-heading")[18:]
-		averages = append(averages, average)
-	})
+	collector.OnHTML("span#plnMain_rptAssigmnetsByCourse_lblHdrAverage_0", func(e *colly.HTMLElement) {
+		// Extract the text containing classwork average
+		averageStr := strings.TrimSpace(e.Text)
 
-	collector.OnScraped(func(r *colly.Response) {
-		ret := orderedmap.New()
-		for i := 0; i < len(classes); i++ {
-			average := averages[i]
-			ret.Set(classes[i], average)
+		// Remove non-numeric characters and extract the numeric part
+		averageStr = strings.TrimPrefix(averageStr, "Classwork Average ")
+		
+		// Convert the average to a float64
+		average, err := strconv.ParseFloat(averageStr, 64)
+		if err == nil {
+			averages = append(averages, average)
 		}
-
-		c.JSON(200, ret)
 	})
 
-	err = collector.Visit("https://homeaccess.katyisd.org/HomeAccess/Content/Student/Assignments.aspx")
+	// Visit the website
+	err = collector.Visit("https://homeaccess.katyisd.org/HomeAccess/Classes/Classwork") // Replace with the actual URL
+
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Failed to scrape data"})
 		return
 	}
+
+	// Create a response map
+	ret := make(map[string]interface{})
+
+	// Add class and average information to the response map
+	for i := 0; i < len(averages); i++ {
+		className := strcase.ToSnake(classes[i]) // Convert class name to snake_case
+		ret[className] = averages[i]
+	}
+
+	c.JSON(200, ret)
 }
 
 func getClasses(c *gin.Context) {
