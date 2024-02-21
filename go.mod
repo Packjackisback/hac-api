@@ -1,4 +1,4 @@
-module github.com/nitheesh-cpu/HomeAccessCenterAPI-Golang
+module github.com/Packjackisback/hac-api
 
 go 1.19
 
